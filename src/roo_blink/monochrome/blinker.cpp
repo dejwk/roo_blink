@@ -61,28 +61,50 @@ void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
   roo::lock_guard<roo::mutex> lock(mutex_);
   sequence_ = std::move(sequence.sequence_);
   terminal_level_ = terminal_level;
+  current_level_ = terminal_level_;
   repetitions_ = repetitions;
+  fade_in_progress_ = false;
   pos_ = 0;
   if (!sequence_.empty() && !stepper_.is_scheduled()) {
     stepper_.scheduleNow(roo_scheduler::PRIORITY_ELEVATED);
   } else {
-    led_.setLevel(terminal_level_);
+    current_level_ = terminal_level_;
+    led_.setLevel(current_level_);
   }
 }
 
 void Blinker::step() {
   roo::lock_guard<roo::mutex> lock(mutex_);
+  if (fade_in_progress_) {
+    roo_time::Uptime now = roo_time::Uptime::Now();
+    if (now >= fade_end_time_) {
+      fade_in_progress_ = false;
+      current_level_ = fade_target_level_;
+      led_.setLevel(current_level_);
+    } else {
+      float progress = (now - fade_start_time_).inMillisFloat() /
+                       (fade_end_time_ - fade_start_time_).inMillisFloat();
+      current_level_ = fade_start_level_ +
+                       (fade_target_level_ - fade_start_level_) * progress;
+      led_.setLevel(current_level_);
+      stepper_.scheduleAfter(roo_time::Millis(20),
+                             roo_scheduler::PRIORITY_ELEVATED);
+      return;
+    }
+  }
   uint16_t next_delay = 0;
   do {
     if (pos_ >= sequence_.size()) {
       sequence_.clear();
-      led_.setLevel(terminal_level_);
+      current_level_ = terminal_level_;
+      led_.setLevel(current_level_);
       return;
     }
     const Step& s = sequence_[pos_];
     switch (s.type_) {
       case Step::kSet: {
-        led_.setLevel(s.target_level_);
+        current_level_ = s.target_level_;
+        led_.setLevel(current_level_);
         break;
       }
       case Step::kHold: {
@@ -91,8 +113,18 @@ void Blinker::step() {
       }
       case Step::kFade:
       default: {
-        led_.fade(s.target_level_, roo_time::Millis(s.duration_millis_));
-        next_delay = s.duration_millis_;
+        if (led_.fade(s.target_level_, roo_time::Millis(s.duration_millis_))) {
+          next_delay = s.duration_millis_;
+        } else {
+          fade_in_progress_ = true;
+          fade_start_level_ = current_level_;
+          fade_target_level_ = s.target_level_;
+          fade_start_time_ = roo_time::Uptime::Now();
+          fade_end_time_ =
+              fade_start_time_ + roo_time::Millis(s.duration_millis_);
+          next_delay = 20;
+        }
+        break;
       }
     }
     ++pos_;
@@ -106,7 +138,7 @@ void Blinker::step() {
 }
 
 BlinkSequence Blink(roo_time::Interval period, int duty_percent,
-                        int rampup_percent_on, int rampup_percent_off) {
+                    int rampup_percent_on, int rampup_percent_off) {
   CHECK_GE(duty_percent, 0);
   CHECK_LE(duty_percent, 100);
   CHECK_GE(rampup_percent_on, 0);

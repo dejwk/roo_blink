@@ -107,11 +107,19 @@ class Blinker {
   Led& led_;
   roo_scheduler::SingletonTask stepper_;
   std::vector<Step> sequence_;
+  uint16_t current_level_;
   uint16_t terminal_level_;
   size_t repetitions_;
   size_t pos_;
 
   mutable roo::mutex mutex_;
+
+  // For when hardware fading is not supported.
+  bool fade_in_progress_;
+  uint16_t fade_start_level_;
+  uint16_t fade_target_level_;
+  roo_time::Uptime fade_start_time_;
+  roo_time::Uptime fade_end_time_;
 };
 
 BlinkSequence Blink(roo_time::Interval period, int duty_percent = 50,
