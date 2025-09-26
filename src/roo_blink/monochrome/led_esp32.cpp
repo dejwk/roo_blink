@@ -13,9 +13,8 @@ static constexpr int kDuty = 1 << kDutyRes;
 
 static constexpr int kFreq = 40000;
 
-GpioMonochromeLed::GpioMonochromeLed(int gpio_num, Mode mode,
-                                     ledc_timer_t timer_num,
-                                     ledc_channel_t channel)
+GpioLed::GpioLed(int gpio_num, Mode mode, ledc_timer_t timer_num,
+                 ledc_channel_t channel)
     : channel_(channel), mode_(mode) {
   ledc_timer_config_t ledc_timer = {.speed_mode = LEDC_LOW_SPEED_MODE,
                                     .duty_resolution = kDutyRes,
@@ -37,13 +36,12 @@ GpioMonochromeLed::GpioMonochromeLed(int gpio_num, Mode mode,
   ledc_fade_func_install(0);
 }
 
-void GpioMonochromeLed::setLevel(uint16_t level) {
+void GpioLed::setLevel(uint16_t level) {
   ledc_set_duty(LEDC_LOW_SPEED_MODE, channel_, dutyForLevel(level));
   ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_);
 }
 
-void GpioMonochromeLed::fade(uint16_t target_level,
-                             roo_time::Interval duration) {
+void GpioLed::fade(uint16_t target_level, roo_time::Interval duration) {
   ESP_ERROR_CHECK(ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, channel_,
                                           dutyForLevel(target_level),
                                           duration.inMillis()));
@@ -52,7 +50,7 @@ void GpioMonochromeLed::fade(uint16_t target_level,
       ledc_fade_start(LEDC_LOW_SPEED_MODE, channel_, LEDC_FADE_NO_WAIT));
 }
 
-int GpioMonochromeLed::dutyForLevel(uint16_t level) const {
+int GpioLed::dutyForLevel(uint16_t level) const {
   if (mode_ == ON_LOW) {
     level = 65535 - level;
   }
@@ -65,8 +63,8 @@ static const int kBuiltinLedPin = 8;
 static const int kBuiltinLedPin = 2;
 #endif
 
-::roo_blink::monochrome::Led& BuiltinLed() {
-  static GpioMonochromeLed instance(kBuiltinLedPin, GpioMonochromeLed::ON_LOW);
+Led& BuiltinLed() {
+  static GpioLed instance(kBuiltinLedPin, GpioLed::ON_LOW);
   return instance;
 }
 

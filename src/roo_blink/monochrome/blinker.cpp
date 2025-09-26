@@ -7,7 +7,6 @@
 using namespace roo_time;
 
 namespace roo_blink {
-namespace monochrome {
 
 namespace {
 roo_scheduler::Scheduler default_scheduler;
@@ -144,5 +143,4 @@ std::vector<Step> Blink(roo_time::Interval period, int duty_percent,
   return result;
 }
 
-}  // namespace monochrome
 }  // namespace roo_blink

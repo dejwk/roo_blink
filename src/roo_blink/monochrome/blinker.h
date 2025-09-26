@@ -11,7 +11,6 @@
 #include "roo_time.h"
 
 namespace roo_blink {
-namespace monochrome {
 
 class Step {
  public:
@@ -136,5 +135,4 @@ constexpr Step Hold(roo_time::Interval duration) {
   return Step(Step::kHold, 0, (uint16_t)duration.inMillis());
 }
 
-}  // namespace monochrome
 }  // namespace roo_blink

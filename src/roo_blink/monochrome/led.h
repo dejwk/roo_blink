@@ -4,7 +4,6 @@
 #include "stdint.h"
 
 namespace roo_blink {
-namespace monochrome {
 
 // Abstract interface representing a monochrome LED.
 class Led {
@@ -24,5 +23,4 @@ class Led {
   virtual void fade(uint16_t target_level, roo_time::Interval duration) = 0;
 };
 
-}  // namespace monochrome
 }  // namespace roo_blink
