@@ -1,0 +1,5 @@
+
+module(name = "roo_blink", version = "1.0.0")
+
+bazel_dep(name = "googletest", version = "1.17.0")
+bazel_dep(name = "roo_testing", version = "1.1.1")
