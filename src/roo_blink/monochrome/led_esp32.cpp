@@ -59,12 +59,14 @@ int GpioLed::dutyForLevel(uint16_t level) const {
 
 #if CONFIG_IDF_TARGET_ESP32C3
 static const int kBuiltinLedPin = 8;
+static const GpioLed::Mode kBuiltinLedMode = GpioLed::ON_LOW;
 #else
 static const int kBuiltinLedPin = 2;
+static const GpioLed::Mode kBuiltinLedMode = GpioLed::ON_HIGH;
 #endif
 
 Led& BuiltinLed() {
-  static GpioLed instance(kBuiltinLedPin, GpioLed::ON_LOW);
+  static GpioLed instance(kBuiltinLedPin, kBuiltinLedMode);
   return instance;
 }
 
