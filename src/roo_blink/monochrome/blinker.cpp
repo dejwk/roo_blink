@@ -37,16 +37,16 @@ Blinker::Blinker(Led& led, roo_scheduler::Scheduler& scheduler)
       sequence_(),
       pos_(0) {}
 
-void Blinker::loop(std::vector<Step> sequence) {
+void Blinker::loop(BlinkSequence sequence) {
   updateSequence(std::move(sequence), -1, 0);
 }
 
-void Blinker::repeat(std::vector<Step> sequence, int repetitions,
+void Blinker::repeat(BlinkSequence sequence, int repetitions,
                      uint16_t terminal_level) {
   updateSequence(std::move(sequence), repetitions - 1, terminal_level);
 }
 
-void Blinker::execute(std::vector<Step> sequence, uint16_t terminal_level) {
+void Blinker::execute(BlinkSequence sequence, uint16_t terminal_level) {
   updateSequence(std::move(sequence), 0, terminal_level);
 }
 
@@ -56,10 +56,10 @@ void Blinker::turnOn() { set(65535); }
 
 void Blinker::turnOff() { set(0); }
 
-void Blinker::updateSequence(std::vector<Step> sequence, int repetitions,
+void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
                              uint16_t terminal_level) {
   roo::lock_guard<roo::mutex> lock(mutex_);
-  sequence_ = std::move(sequence);
+  sequence_ = std::move(sequence.sequence_);
   terminal_level_ = terminal_level;
   repetitions_ = repetitions;
   pos_ = 0;
@@ -105,7 +105,7 @@ void Blinker::step() {
                          roo_scheduler::PRIORITY_ELEVATED);
 }
 
-std::vector<Step> Blink(roo_time::Interval period, int duty_percent,
+BlinkSequence Blink(roo_time::Interval period, int duty_percent,
                         int rampup_percent_on, int rampup_percent_off) {
   CHECK_GE(duty_percent, 0);
   CHECK_LE(duty_percent, 100);
@@ -119,25 +119,24 @@ std::vector<Step> Blink(roo_time::Interval period, int duty_percent,
   int millis_2nd = millis - millis_1st;
   int millis_2nd_rampup = rampup_percent_off * millis_2nd / 100;
 
-  std::vector<Step> result;
-  result.reserve(4);
+  BlinkSequence result;
 
   if (millis_1st_rampup > 0) {
-    result.push_back(FadeOn(Millis(millis_1st_rampup)));
+    result.add(FadeOn(Millis(millis_1st_rampup)));
   } else {
-    result.push_back(TurnOn());
+    result.add(TurnOn());
   }
   if (millis_1st_rampup < millis_1st) {
-    result.push_back(Hold(Millis(millis_1st - millis_1st_rampup)));
+    result.add(Hold(Millis(millis_1st - millis_1st_rampup)));
   }
 
   if (millis_2nd_rampup > 0) {
-    result.push_back(FadeOff(Millis(millis_2nd_rampup)));
+    result.add(FadeOff(Millis(millis_2nd_rampup)));
   } else {
-    result.push_back(TurnOff());
+    result.add(TurnOff());
   }
   if (millis_2nd_rampup < millis_2nd) {
-    result.push_back(Hold(Millis(millis_2nd - millis_2nd_rampup)));
+    result.add(Hold(Millis(millis_2nd - millis_2nd_rampup)));
   }
 
   return result;
