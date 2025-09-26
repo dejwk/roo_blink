@@ -32,5 +32,4 @@ void setup() {
 void loop() {
   // You're free to do as you please; it will not interfefe with the blinker.
 }
-
 ```
