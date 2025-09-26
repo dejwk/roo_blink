@@ -8,7 +8,6 @@ using namespace roo_blink;
 Blinker blinker(roo_blink::esp32::BuiltinLed());
 
 void setup() {
-  Serial.begin(115200);
   // Starts a customized blink sequence: 30% duty cycle (i.e. 30% rising, 30%
   // falling), with fast (30%) rampup of the 'on' state, and slow (90%) rampdown
   // of the off state. This config results in the following timings:
