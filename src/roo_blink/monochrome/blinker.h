@@ -16,12 +16,12 @@ class Step {
  public:
   friend constexpr Step TurnOn();
   friend constexpr Step TurnOff();
-  friend constexpr Step FadeOn(roo_time::Interval duration);
-  friend constexpr Step FadeOff(roo_time::Interval duration);
+  friend constexpr Step FadeOn(roo_time::Duration duration);
+  friend constexpr Step FadeOff(roo_time::Duration duration);
 
   friend constexpr Step SetTo(uint16_t level);
-  friend constexpr Step FadeTo(uint16_t level, roo_time::Interval duration);
-  friend constexpr Step Hold(roo_time::Interval duration);
+  friend constexpr Step FadeTo(uint16_t level, roo_time::Duration duration);
+  friend constexpr Step Hold(roo_time::Duration duration);
 
  private:
   friend class Blinker;
@@ -56,19 +56,19 @@ constexpr Step SetTo(uint16_t level);
 
 // Creates a step that fades the brightness linearly to the specified brighness
 // level, over the specified time interval.
-constexpr Step FadeTo(uint16_t level, roo_time::Interval duration);
+constexpr Step FadeTo(uint16_t level, roo_time::Duration duration);
 
 // Creates a step that fades the brightness linearly to the maximum brighness,
 // over the specified time interval.
-constexpr Step FadeOn(roo_time::Interval duration);
+constexpr Step FadeOn(roo_time::Duration duration);
 
 // Creates a step that fades the brightness linearly down to off, over the
 // specified time interval.
-constexpr Step FadeOff(roo_time::Interval duration);
+constexpr Step FadeOff(roo_time::Duration duration);
 
 // Creates a step that maintains the current brightness for the specified
 // duration.
-constexpr Step Hold(roo_time::Interval duration);
+constexpr Step Hold(roo_time::Duration duration);
 
 class Blinker {
  public:
@@ -122,7 +122,7 @@ class Blinker {
   roo_time::Uptime fade_end_time_;
 };
 
-BlinkSequence Blink(roo_time::Interval period, int duty_percent = 50,
+BlinkSequence Blink(roo_time::Duration period, int duty_percent = 50,
                     int rampup_percent_on = 0, int rampup_percent_off = 0);
 
 // Implementation details.
@@ -137,19 +137,19 @@ constexpr Step TurnOff() { return Step(Step::kSet, 0, 0); }
 
 constexpr Step SetTo(uint16_t level) { return Step(Step::kSet, level, 0); }
 
-constexpr Step FadeTo(uint16_t level, roo_time::Interval duration) {
+constexpr Step FadeTo(uint16_t level, roo_time::Duration duration) {
   return Step(Step::kFade, level, (uint16_t)duration.inMillis());
 }
 
-constexpr Step FadeOn(roo_time::Interval duration) {
+constexpr Step FadeOn(roo_time::Duration duration) {
   return FadeTo(65535, duration);
 }
 
-constexpr Step FadeOff(roo_time::Interval duration) {
+constexpr Step FadeOff(roo_time::Duration duration) {
   return FadeTo(0, duration);
 }
 
-constexpr Step Hold(roo_time::Interval duration) {
+constexpr Step Hold(roo_time::Duration duration) {
   return Step(Step::kHold, 0, (uint16_t)duration.inMillis());
 }
 

@@ -14,10 +14,10 @@ namespace roo_blink {
 class RgbStep {
  public:
   friend constexpr RgbStep RgbSetTo(Color color);
-  friend constexpr RgbStep RgbHold(roo_time::Interval duration);
+  friend constexpr RgbStep RgbHold(roo_time::Duration duration);
   friend constexpr RgbStep RgbTurnOff();
-  friend constexpr RgbStep RgbFadeTo(Color color, roo_time::Interval duration);
-  friend constexpr RgbStep RgbFadeOff(roo_time::Interval duration);
+  friend constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration);
+  friend constexpr RgbStep RgbFadeOff(roo_time::Duration duration);
 
  private:
   friend class RgbBlinker;
@@ -49,15 +49,15 @@ constexpr RgbStep RgbTurnOff();
 
 // Creates a step that gradually transforms the color to the specified target
 // color, over the specified time interval.
-constexpr RgbStep RgbFadeTo(Color color, roo_time::Interval duration);
+constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration);
 
 // Creates a step that gradually fades the LED off, over the specified time
 // interval.
-constexpr RgbStep RgbFadeOff(roo_time::Interval duration);
+constexpr RgbStep RgbFadeOff(roo_time::Duration duration);
 
 // Creates a step that maintains the current brightness for the specified
 // duration.
-constexpr RgbStep RgbHold(roo_time::Interval duration);
+constexpr RgbStep RgbHold(roo_time::Duration duration);
 
 class RgbBlinker {
  public:
@@ -107,7 +107,7 @@ class RgbBlinker {
   roo_time::Uptime fade_end_time_;
 };
 
-RgbBlinkSequence RgbBlink(roo_time::Interval period, Color color,
+RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
                           int duty_percent = 50, int rampup_percent_on = 0,
                           int rampup_percent_off = 0);
 
@@ -122,15 +122,15 @@ constexpr RgbStep RgbSetTo(Color color) {
 
 constexpr RgbStep RgbTurnOff() { return RgbSetTo(Color()); }
 
-constexpr RgbStep RgbHold(roo_time::Interval duration) {
+constexpr RgbStep RgbHold(roo_time::Duration duration) {
   return RgbStep(RgbStep::kHold, Color(), (uint16_t)duration.inMillis());
 }
 
-constexpr RgbStep RgbFadeTo(Color color, roo_time::Interval duration) {
+constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration) {
   return RgbStep(RgbStep::kFade, color, (uint16_t)duration.inMillis());
 }
 
-constexpr RgbStep RgbFadeOff(roo_time::Interval duration) {
+constexpr RgbStep RgbFadeOff(roo_time::Duration duration) {
   return RgbFadeTo(Color(), duration);
 }
 

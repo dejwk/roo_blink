@@ -41,7 +41,7 @@ void GpioLed::setLevel(uint16_t level) {
   ledc_update_duty(LEDC_LOW_SPEED_MODE, channel_);
 }
 
-bool GpioLed::fade(uint16_t target_level, roo_time::Interval duration) {
+bool GpioLed::fade(uint16_t target_level, roo_time::Duration duration) {
   ESP_ERROR_CHECK(ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, channel_,
                                           dutyForLevel(target_level),
                                           duration.inMillis()));

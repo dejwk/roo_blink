@@ -27,7 +27,7 @@ class GpioLed : public ::roo_blink::Led {
           ledc_channel_t channel = LEDC_CHANNEL_0);
 
   void setLevel(uint16_t level) override;
-  bool fade(uint16_t target_level, roo_time::Interval duration) override;
+  bool fade(uint16_t target_level, roo_time::Duration duration) override;
 
  private:
   int dutyForLevel(uint16_t level) const;

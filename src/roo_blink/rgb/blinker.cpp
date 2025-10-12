@@ -119,7 +119,7 @@ void RgbBlinker::step() {
                          roo_scheduler::PRIORITY_ELEVATED);
 }
 
-RgbBlinkSequence RgbBlink(roo_time::Interval period, Color color,
+RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
                           int duty_percent, int rampup_percent_on,
                           int rampup_percent_off) {
   CHECK_GE(duty_percent, 0);

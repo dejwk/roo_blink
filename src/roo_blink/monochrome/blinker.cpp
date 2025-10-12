@@ -117,7 +117,7 @@ void Blinker::step() {
                          roo_scheduler::PRIORITY_ELEVATED);
 }
 
-BlinkSequence Blink(roo_time::Interval period, int duty_percent,
+BlinkSequence Blink(roo_time::Duration period, int duty_percent,
                     int rampup_percent_on, int rampup_percent_off) {
   CHECK_GE(duty_percent, 0);
   CHECK_LE(duty_percent, 100);

@@ -20,7 +20,7 @@ class Led {
 
   // Initiates a linear fade from the current brightness level to the specified
   // brightness level, expected to take the specified time interval to complete.
-  virtual bool fade(uint16_t target_level, roo_time::Interval duration) = 0;
+  virtual bool fade(uint16_t target_level, roo_time::Duration duration) = 0;
 };
 
 }  // namespace roo_blink
