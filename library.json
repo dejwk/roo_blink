@@ -13,7 +13,7 @@
         "type": "git",
         "url": "https://github.com/dejwk/roo_blink"
     },
-    "version": "1.0.3",
+    "version": "1.0.4",
     "homepage": "https://github.com/dejwk/roo_blink",
     "frameworks": [
         "Arduino"
@@ -26,7 +26,7 @@
         "examples/**/*.ino"
     ],
     "dependencies": {
-        "dejwk/roo_logging": ">=1.5.0",
+        "dejwk/roo_logging": ">=1.5.1",
         "dejwk/roo_scheduler": ">=2.1.6",
         "dejwk/roo_threads": ">=1.2.0",
         "dejwk/roo_time": ">=1.4.0"
