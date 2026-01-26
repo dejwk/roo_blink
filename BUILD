@@ -1,3 +1,5 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
 cc_library(
     name = "roo_blink",
     srcs = glob(
@@ -14,7 +16,7 @@ cc_library(
     deps = [
         "@roo_logging",
         "@roo_scheduler",
-        "@roo_time",
         "@roo_testing//roo_testing/frameworks/arduino-esp32-2.0.4/cores/esp32",
+        "@roo_time",
     ],
 )
