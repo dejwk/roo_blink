@@ -1,5 +1,9 @@
 #pragma once
 
+/// Umbrella header for the roo_blink module.
+///
+/// Provides monochrome and RGB LED blinking helpers.
+
 #include "roo_blink/monochrome/blinker.h"
 #include "roo_blink/monochrome/led.h"
 #include "roo_blink/rgb/blinker.h"
