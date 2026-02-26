@@ -11,6 +11,7 @@
 
 namespace roo_blink {
 
+/// Single step of an RGB blink sequence.
 class RgbStep {
  public:
   friend constexpr RgbStep RgbSetTo(Color color);
@@ -31,6 +32,7 @@ class RgbStep {
   uint16_t duration_millis_;
 };
 
+/// Sequence of steps for RGB blinking.
 class RgbBlinkSequence {
  public:
   void add(RgbStep step) { sequence_.push_back(std::move(step)); }
@@ -41,48 +43,44 @@ class RgbBlinkSequence {
   friend class RgbBlinker;
 };
 
-// Creates a step that sets the LED to the the specified color instantly.
+/// Creates a step that sets the LED to the specified color instantly.
 constexpr RgbStep RgbSetTo(Color color);
 
-// Creates a step that disables the LED. Equivalent to RgbSetTo(Color()).
+/// Creates a step that disables the LED. Equivalent to RgbSetTo(Color()).
 constexpr RgbStep RgbTurnOff();
 
-// Creates a step that gradually transforms the color to the specified target
-// color, over the specified time interval.
+/// Creates a step that fades to the target color over the duration.
 constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration);
 
-// Creates a step that gradually fades the LED off, over the specified time
-// interval.
+/// Creates a step that fades the LED off over the duration.
 constexpr RgbStep RgbFadeOff(roo_time::Duration duration);
 
-// Creates a step that maintains the current brightness for the specified
-// duration.
+/// Creates a step that holds the current color for the duration.
 constexpr RgbStep RgbHold(roo_time::Duration duration);
 
+/// Runs blink sequences on an RGB LED.
 class RgbBlinker {
  public:
-  // Constructs a RgbBlinker that controls the specified LED, using a default
-  // scheduler to schedule the LED updates.
+  /// Constructs a RgbBlinker using the default scheduler.
   RgbBlinker(RgbLed& led);
 
-  // Constructs a RgbBlinker that controls the specified LED, using the
-  // specified scheduler to schedule the LED updates.
+  /// Constructs a RgbBlinker using the specified scheduler.
   RgbBlinker(RgbLed& led, roo_scheduler::Scheduler& scheduler);
 
-  // Infinite loop of steps.
+  /// Repeats the sequence indefinitely.
   void loop(RgbBlinkSequence sequence);
 
-  // Specified count of repetitions of steps.
+  /// Repeats the sequence the specified number of times.
   void repeat(RgbBlinkSequence sequence, int repetitions,
               Color terminal_color = Color());
 
-  // Executes the sequence once.
+  /// Executes the sequence once.
   void execute(RgbBlinkSequence sequence, Color terminal_color = Color());
 
-  // Enables the LED, setting it to the specified color.
+  /// Enables the LED, setting it to the specified color.
   void setColor(Color color);
 
-  // Disables the LED.
+  /// Disables the LED.
   void turnOff();
 
  private:
@@ -107,6 +105,7 @@ class RgbBlinker {
   roo_time::Uptime fade_end_time_;
 };
 
+/// Creates a symmetric blink sequence with optional ramp-up/down segments.
 RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
                           int duty_percent = 50, int rampup_percent_on = 0,
                           int rampup_percent_off = 0);

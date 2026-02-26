@@ -12,6 +12,7 @@
 
 namespace roo_blink {
 
+/// Single step of a monochrome blink sequence.
 class Step {
  public:
   friend constexpr Step TurnOn();
@@ -35,6 +36,7 @@ class Step {
   uint16_t duration_millis_;
 };
 
+/// Sequence of steps for monochrome blinking.
 class BlinkSequence {
  public:
   void add(Step step) { sequence_.push_back(std::move(step)); }
@@ -45,58 +47,53 @@ class BlinkSequence {
   friend class Blinker;
 };
 
-// Creates a step that sets the LED to the maximum brightness instantly.
+/// Creates a step that sets the LED to the maximum brightness instantly.
 constexpr Step TurnOn();
 
-// Creates a step that sets the LED to completely off instantly.
+/// Creates a step that sets the LED to completely off instantly.
 constexpr Step TurnOff();
 
-// Creates a step that sets the LED to the specifed brightness level instantly.
+/// Creates a step that sets the LED to the specified brightness instantly.
 constexpr Step SetTo(uint16_t level);
 
-// Creates a step that fades the brightness linearly to the specified brighness
-// level, over the specified time interval.
+/// Creates a step that fades linearly to the target level over the duration.
 constexpr Step FadeTo(uint16_t level, roo_time::Duration duration);
 
-// Creates a step that fades the brightness linearly to the maximum brighness,
-// over the specified time interval.
+/// Creates a step that fades linearly to the maximum brightness over duration.
 constexpr Step FadeOn(roo_time::Duration duration);
 
-// Creates a step that fades the brightness linearly down to off, over the
-// specified time interval.
+/// Creates a step that fades linearly down to off over the duration.
 constexpr Step FadeOff(roo_time::Duration duration);
 
-// Creates a step that maintains the current brightness for the specified
-// duration.
+/// Creates a step that maintains the current brightness for the duration.
 constexpr Step Hold(roo_time::Duration duration);
 
+/// Runs blink sequences on a monochrome LED.
 class Blinker {
  public:
-  // Constructs a Blinker that controls the specified LED, using a default
-  // scheduler to schedule the LED updates.
+  /// Constructs a Blinker using the default scheduler.
   Blinker(Led& led);
 
-  // Constructs a Blinker that controls the specified LED, using the specified
-  // scheduler to schedule the LED updates.
+  /// Constructs a Blinker using the specified scheduler.
   Blinker(Led& led, roo_scheduler::Scheduler& scheduler);
 
-  // Infinite loop of steps.
+  /// Repeats the sequence indefinitely.
   void loop(BlinkSequence sequence);
 
-  // Specified count of repetitions of steps.
+  /// Repeats the sequence the specified number of times.
   void repeat(BlinkSequence sequence, int repetitions,
               uint16_t terminal_level = 0);
 
-  // Executes the sequence once.
+  /// Executes the sequence once.
   void execute(BlinkSequence sequence, uint16_t terminal_level = 0);
 
-  // Enables the LED at the specified intensity.
+  /// Enables the LED at the specified intensity.
   void set(uint16_t intensity);
 
-  // Enables the LED at the maximum intensity.
+  /// Enables the LED at the maximum intensity.
   void turnOn();
 
-  // Disables the LED.
+  /// Disables the LED.
   void turnOff();
 
  private:
@@ -122,6 +119,7 @@ class Blinker {
   roo_time::Uptime fade_end_time_;
 };
 
+/// Creates a symmetric blink sequence with optional ramp-up/down segments.
 BlinkSequence Blink(roo_time::Duration period, int duty_percent = 50,
                     int rampup_percent_on = 0, int rampup_percent_off = 0);
 

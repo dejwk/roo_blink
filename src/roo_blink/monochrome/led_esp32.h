@@ -9,19 +9,20 @@
 namespace roo_blink {
 namespace esp32 {
 
-// Monochrome LED connected to a GPIO pin, using the ESP32 LEDC PWM
-// functionality to control brightness.
+/// Monochrome LED on a GPIO pin using ESP32 LEDC PWM for brightness control.
 class GpioLed : public ::roo_blink::Led {
  public:
+  /// Polarity mode for the LED connection.
   enum Mode { ON_HIGH, ON_LOW };
 
-  // Constructs a GpioLed connected to the specified GPIO pin.
-  // The pin is expected to be connected to the LED anode if mode is ON_HIGH
-  // (the default), or to the LED cathode if mode is ON_LOW.
-  //
-  // If provided, the specified LEDC timer and channel will be used to
-  // control the LED brightness. The default timer and channel are suitable
-  // for most applications, unless multiple LEDs are being controlled.
+  /// Constructs a GpioLed connected to the specified GPIO pin.
+  ///
+  /// The pin is expected to be connected to the LED anode if mode is ON_HIGH
+  /// (the default), or to the LED cathode if mode is ON_LOW.
+  ///
+  /// If provided, the specified LEDC timer and channel will be used to
+  /// control the LED brightness. The default timer and channel are suitable
+  /// for most applications, unless multiple LEDs are being controlled.
   GpioLed(int gpio_num, Mode mode = ON_LOW,
           ledc_timer_t timer_num = LEDC_TIMER_0,
           ledc_channel_t channel = LEDC_CHANNEL_0);
@@ -36,7 +37,7 @@ class GpioLed : public ::roo_blink::Led {
   Mode mode_;
 };
 
-// Returns a GpioLed representing the built-in LED on the ESP32 board.
+/// Returns a GpioLed representing the built-in LED on the ESP32 board.
 Led& BuiltinLed();
 
 }  // namespace esp32
