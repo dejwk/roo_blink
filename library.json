@@ -26,9 +26,9 @@
         "examples/**/*.ino"
     ],
     "dependencies": {
-        "dejwk/roo_logging": ">=1.5.3",
-        "dejwk/roo_scheduler": ">=2.1.7",
-        "dejwk/roo_threads": ">=1.2.1",
-        "dejwk/roo_time": ">=1.4.1"
+        "dejwk/roo_logging": ">=1.5.5",
+        "dejwk/roo_scheduler": ">=2.1.9",
+        "dejwk/roo_threads": ">=1.2.3",
+        "dejwk/roo_time": ">=1.4.3"
     }
 }
