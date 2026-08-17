@@ -44,3 +44,7 @@ or newer, a plain command defaults to that profile and prints a notice:
 
 The files under .roo_testing/bazelrc/esp32 are vendored from roo_testing;
 follow their canonical-source headers when refreshing them.
+
+The basic monochrome example is also a directly runnable emulator target:
+
+    bazel run //examples/monochrome/Trivial:Trivial
