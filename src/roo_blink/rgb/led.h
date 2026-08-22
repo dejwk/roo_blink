@@ -10,7 +10,7 @@ namespace roo_blink {
 class RgbLed {
  public:
   /// Sets the LED to the specified color.
-  virtual void setColor(Color color);
+  virtual void setColor(Color color) = 0;
 };
 
 }  // namespace roo_blink
