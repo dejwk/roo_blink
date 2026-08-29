@@ -23,11 +23,21 @@ class GpioLed : public ::roo_blink::Led {
   /// If provided, the specified LEDC timer and channel will be used to
   /// control the LED brightness. The default timer and channel are suitable
   /// for most applications, unless multiple LEDs are being controlled.
-  GpioLed(int gpio_num, Mode mode = ON_LOW,
+  GpioLed(int gpio_num, Mode mode = ON_HIGH,
           ledc_timer_t timer_num = LEDC_TIMER_0,
           ledc_channel_t channel = LEDC_CHANNEL_0);
 
+  /// Sets brightness immediately.
+  ///
+  /// Must be called from a running FreeRTOS task. On classic ESP32 it can wait
+  /// for a previously started fade on the same LEDC channel to complete.
   void setLevel(uint16_t level) override;
+
+  /// Starts a hardware fade to the requested brightness.
+  ///
+  /// Must be called from a running FreeRTOS task. The first call initializes
+  /// the process-wide LEDC fade service; constructing a GpioLed is safe before
+  /// scheduler startup.
   bool fade(uint16_t target_level, roo_time::Duration duration) override;
 
  private:
