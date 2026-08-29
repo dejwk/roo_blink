@@ -49,3 +49,18 @@ follow their canonical-source headers when refreshing them.
 The basic monochrome example is also a directly runnable emulator target:
 
     bazel run //examples/monochrome/Trivial:Trivial
+
+For an emulator-visible version of the smooth fade pattern, run:
+
+    bazel run //examples/monochrome/VoltageTrace:VoltageTrace
+
+`VoltageTrace` attaches a voltage sink to the built-in LED pin and prints CSV
+rows whenever LEDC assigns a PWM signal and every 100 ms thereafter. The rows
+contain emulated uptime plus DC, total RMS, and AC RMS voltage, making the
+pulsating LED observable in a terminal. Stop it with Ctrl-C.
+
+When developing it alongside an unreleased local `roo_testing` checkout, use
+that checkout's LEDC implementation explicitly:
+
+    bazel run //examples/monochrome/VoltageTrace:VoltageTrace \
+      --override_repository=roo_testing+=$PWD/../roo_testing
