@@ -1,5 +1,7 @@
 #include "roo_blink/monochrome/blinker.h"
 
+#include <exception>
+
 #include "roo_blink.h"
 #include "roo_blink/default_scheduler.h"
 #include "roo_logging.h"
@@ -16,6 +18,16 @@ Blinker::Blinker(Led& led, roo_scheduler::Scheduler& scheduler)
       stepper_(scheduler, [this]() { step(); }),
       sequence_(),
       pos_(0) {}
+
+bool Blinker::shutdown() {
+  // The stepper owns the shutdown state. Never take the animation mutex while
+  // waiting for a step that may need it.
+  return stepper_.shutdown();
+}
+
+Blinker::~Blinker() {
+  if (!shutdown()) std::terminate();
+}
 
 void Blinker::loop(BlinkSequence sequence) {
   updateSequence(std::move(sequence), -1, 0);
@@ -39,6 +51,7 @@ void Blinker::turnOff() { set(0); }
 void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
                              uint16_t terminal_level) {
   roo::lock_guard<roo::mutex> lock(mutex_);
+  if (stepper_.is_shutdown()) return;
   sequence_ = std::move(sequence.sequence_);
   terminal_level_ = terminal_level;
   current_level_ = terminal_level_;
@@ -55,6 +68,7 @@ void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
 
 void Blinker::step() {
   roo::lock_guard<roo::mutex> lock(mutex_);
+  if (stepper_.is_shutdown()) return;
   if (fade_in_progress_) {
     roo_time::Uptime now = roo_time::Uptime::Now();
     if (now >= fade_end_time_) {

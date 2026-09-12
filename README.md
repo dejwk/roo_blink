@@ -34,6 +34,34 @@ void loop() {
 }
 ```
 
+## Threads and shutdown
+
+Pattern and level/color updates may be made from application threads while the
+scheduler advances the animation. The default scheduler has its own dispatch
+thread; a supplied scheduler must have one dispatch thread. Animation state and
+stepper scheduling are synchronized separately. LED implementations must keep
+any other access to their hardware state synchronized as appropriate.
+
+Both `Blinker` and `RgbBlinker` provide `shutdown()`. It permanently stops the
+stepper and waits for claimed callbacks before animation state can be torn down.
+Later pattern and level/color updates are ignored. Shutdown preserves the last
+LED output; call `turnOff()` first if that is the desired final output.
+
+```cpp
+blinker.turnOff();
+blinker.shutdown();  // Keep the LED and scheduler alive until this returns.
+```
+
+Destructors perform shutdown before member teardown. Prevent concurrent public
+calls before destroying the blinker. Do not hold a lock required by a callback
+or LED implementation while waiting. From the blinker's own callback, shutdown
+returns false instead of waiting on itself and still disables stepper scheduling;
+call it again from outside the callback to finish shutdown. Do not destroy a
+blinker from its callback. The LED and scheduler must outlive the blinker.
+
+These lifecycle operations require the corresponding `roo_scheduler` shutdown
+API when building the two libraries from local checkouts.
+
 ## Host emulation
 
 Host builds use the roo_testing 2.0 Arduino ESP32 profile. With Bazelisk 1.21

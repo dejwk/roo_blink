@@ -77,6 +77,16 @@ class Blinker {
   /// Constructs a Blinker using the specified scheduler.
   Blinker(Led& led, roo_scheduler::Scheduler& scheduler);
 
+  /// Stops animation permanently and waits for scheduler callbacks to finish.
+  /// Keep the LED and scheduler alive through this call. Do not hold a lock
+  /// needed by the LED implementation. Returns false if called from this
+  /// blinker's scheduler callback; waiting there would deadlock.
+  bool shutdown();
+
+  /// Quiesces callbacks before destroying animation state. Must not be called
+  /// from this blinker's callback or concurrently with other public calls.
+  ~Blinker();
+
   /// Repeats the sequence indefinitely.
   void loop(BlinkSequence sequence);
 
