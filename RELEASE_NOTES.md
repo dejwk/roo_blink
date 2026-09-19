@@ -1,3 +1,14 @@
+# roo_blink 1.1.0
+
+- Fixed `Blinker` and `RgbBlinker` destruction to stop scheduling and wait for callbacks before tearing down animation state.
+- Added permanent `shutdown()` support. Subsequent updates are ignored; the last LED output is preserved, so call `turnOff()` first if needed.
+- Added lifecycle regression tests and documented threading and shutdown requirements.
+- Updated dependencies to `roo_scheduler` 2.2.0, `roo_time` 2.0.0, `roo_logging` 1.5.10, and `roo_threads` 1.2.8.
+- Updated Bazel tooling and CI dependencies to `rules_cc` 0.2.25, GoogleTest 1.18.0.bcr.1, and `roo_testing` 2.1.2.
+- Added consolidated release history.
+
+---
+
 # [roo_blink 1.0.7](https://github.com/dejwk/roo_blink/releases/tag/1.0.7)
 
 Published 2026-08-29.
