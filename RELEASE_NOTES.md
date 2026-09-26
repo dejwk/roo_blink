@@ -1,3 +1,11 @@
+# roo_blink 1.1.1
+
+- Upgrade dependencies: `roo_logging` to 1.5.11, `roo_scheduler` to 2.2.1, `roo_threads` to 1.2.9, and `roo_time` to 2.0.1.
+- Upgrade `roo_testing` to 2.3.0.
+- Improve Bazel tooling with automatic ESP-IDF profile selection for example runs and a helper to test both Arduino and ESP-IDF ESP32 profiles.
+
+---
+
 # roo_blink 1.1.0
 
 - Fixed `Blinker` and `RgbBlinker` destruction to stop scheduling and wait for callbacks before tearing down animation state.
