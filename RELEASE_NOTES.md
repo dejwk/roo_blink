@@ -1,3 +1,11 @@
+# roo_blink 1.2.0
+
+- Upgrade `roo_scheduler` to 2.3.0.
+- Update `Blinker` and `RgbBlinker` constructors to accept `roo_scheduler::SchedulerClient&`; `DefaultScheduler()` now returns this interface.
+- Migrate the default scheduler, example, and tests from the deprecated `Scheduler` type to `SchedulingService`.
+
+---
+
 # roo_blink 1.1.1
 
 - Upgrade dependencies: `roo_logging` to 1.5.11, `roo_scheduler` to 2.2.1, `roo_threads` to 1.2.9, and `roo_time` to 2.0.1.

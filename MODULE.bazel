@@ -1,5 +1,5 @@
 
-module(name = "roo_blink", version = "1.1.1")
+module(name = "roo_blink", version = "1.2.0")
 
 bazel_dep(name = "rules_cc", version = "0.2.25")
 bazel_dep(name = "googletest", version = "1.18.0.bcr.1")
