@@ -20,7 +20,7 @@ struct TestRgbLed : RgbLed {
 };
 
 TEST(BlinkerLifetime, MonochromeShutdownPreventsFurtherWork) {
-  roo_scheduler::Scheduler scheduler;
+  roo_scheduler::SchedulingService scheduler;
   TestLed led;
   Blinker blinker(led, scheduler);
   blinker.loop(Blink(Seconds(1)));
@@ -35,7 +35,7 @@ TEST(BlinkerLifetime, MonochromeShutdownPreventsFurtherWork) {
 }
 
 TEST(BlinkerLifetime, RgbShutdownPreventsFurtherWork) {
-  roo_scheduler::Scheduler scheduler;
+  roo_scheduler::SchedulingService scheduler;
   TestRgbLed led;
   RgbBlinker blinker(led, scheduler);
   blinker.loop(RgbBlink(Seconds(1), Color(255, 0, 0)));
@@ -50,7 +50,7 @@ TEST(BlinkerLifetime, RgbShutdownPreventsFurtherWork) {
 }
 
 TEST(BlinkerLifetime, DestructionCancelsReadyStepper) {
-  roo_scheduler::Scheduler scheduler;
+  roo_scheduler::SchedulingService scheduler;
   TestLed led;
   {
     Blinker blinker(led, scheduler);
@@ -73,7 +73,7 @@ TEST(BlinkerLifetime, DestructionWaitsForRunningStep) {
     }
     bool fade(uint16_t, Duration) override { return false; }
   } led;
-  roo_scheduler::Scheduler scheduler;
+  roo_scheduler::SchedulingService scheduler;
   auto blinker = std::unique_ptr<Blinker>(new Blinker(led, scheduler));
   blinker->loop(Blink(Seconds(1)));
   roo::thread dispatcher([&] { scheduler.executeEligibleTasks(1); });
@@ -100,7 +100,7 @@ TEST(BlinkerLifetime, SelfShutdownDoesNotLockAnimationMutexAgain) {
     void setLevel(uint16_t) override { result = blinker->shutdown(); }
     bool fade(uint16_t, roo_time::Duration) override { return false; }
   } led;
-  roo_scheduler::Scheduler scheduler;
+  roo_scheduler::SchedulingService scheduler;
   Blinker blinker(led, scheduler);
   led.blinker = &blinker;
   blinker.loop(Blink(roo_time::Seconds(1)));

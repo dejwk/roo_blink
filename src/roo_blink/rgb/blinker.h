@@ -65,7 +65,7 @@ class RgbBlinker {
   RgbBlinker(RgbLed& led);
 
   /// Constructs a RgbBlinker using the specified scheduler.
-  RgbBlinker(RgbLed& led, roo_scheduler::Scheduler& scheduler);
+  RgbBlinker(RgbLed& led, roo_scheduler::SchedulerClient& scheduler);
 
   /// Stops animation permanently and waits for scheduler callbacks to finish.
   /// Keep the LED and scheduler alive through this call. Do not hold a lock

@@ -28,7 +28,7 @@ void setBlinkPattern(int pattern) {
 }
 
 std::atomic<int> current_blink_pattern{0};
-roo_scheduler::Scheduler scheduler;
+roo_scheduler::SchedulingService scheduler;
 
 roo_scheduler::RepetitiveTask change_blink_pattern_task(
     scheduler, roo_time::Seconds(5), []() {
