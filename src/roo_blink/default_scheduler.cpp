@@ -18,7 +18,7 @@ roo::thread CreateSchedulerThread() {
 }
 }  // namespace
 
-roo_scheduler::SchedulerClient& DefaultScheduler() {
+roo_scheduler::Scheduler& DefaultScheduler() {
   static roo::thread scheduler_thread = CreateSchedulerThread();
   return default_scheduler;
 }

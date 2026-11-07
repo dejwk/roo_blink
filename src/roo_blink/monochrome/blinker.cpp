@@ -13,7 +13,7 @@ namespace roo_blink {
 
 Blinker::Blinker(Led& led) : Blinker(led, DefaultScheduler()) {}
 
-Blinker::Blinker(Led& led, roo_scheduler::SchedulerClient& scheduler)
+Blinker::Blinker(Led& led, roo_scheduler::Scheduler& scheduler)
     : led_(led),
       stepper_(scheduler, [this]() { step(); }),
       sequence_(),
