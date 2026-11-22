@@ -4,6 +4,7 @@
 #include "gtest/gtest.h"
 #include "roo_blink/monochrome/blinker.h"
 #include "roo_blink/rgb/blinker.h"
+#include "roo_threads.h"
 #include "roo_threads/semaphore.h"
 
 namespace roo_blink {
