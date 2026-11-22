@@ -14,6 +14,7 @@ static constexpr ledc_timer_bit_t kDutyRes = LEDC_TIMER_10_BIT;
 static constexpr int kDuty = 1 << kDutyRes;
 
 static constexpr int kFreq = 40000;
+static constexpr int kMaxFadeCyclesPerStep = 1023;
 
 // Function-local construction makes first-use initialization once-only without
 // running LEDC code during static GpioLed/BuiltinLed construction.
@@ -30,9 +31,7 @@ class FadeService {
   }
 };
 
-void EnsureFadeServiceInstalled() {
-  static const FadeService service;
-}
+void EnsureFadeServiceInstalled() { static const FadeService service; }
 
 GpioLed::GpioLed(int gpio_num, Mode mode, ledc_timer_t timer_num,
                  ledc_channel_t channel)
@@ -45,15 +44,15 @@ GpioLed::GpioLed(int gpio_num, Mode mode, ledc_timer_t timer_num,
   ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
 
   // Prepare and then apply the LEDC PWM channel configuration
-  ledc_channel_config_t ledc_channel = {.gpio_num = gpio_num,
-                                        .speed_mode = LEDC_LOW_SPEED_MODE,
-                                        .channel = channel,
-                                        .intr_type = LEDC_INTR_DISABLE,
-                                        .timer_sel = timer_num,
-                                        .duty = static_cast<uint32_t>(dutyForLevel(0)),
-                                        .hpoint = 0};
+  ledc_channel_config_t ledc_channel = {
+      .gpio_num = gpio_num,
+      .speed_mode = LEDC_LOW_SPEED_MODE,
+      .channel = channel,
+      .intr_type = LEDC_INTR_DISABLE,
+      .timer_sel = timer_num,
+      .duty = static_cast<uint32_t>(dutyForLevel(0)),
+      .hpoint = 0};
   ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
-
 }
 
 void GpioLed::setLevel(uint16_t level) {
@@ -62,10 +61,19 @@ void GpioLed::setLevel(uint16_t level) {
 }
 
 bool GpioLed::fade(uint16_t target_level, roo_time::Duration duration) {
+  const int64_t millis = duration.inMillis();
+  const int target_duty = dutyForLevel(target_level);
+  const int current_duty = ledc_get_duty(LEDC_LOW_SPEED_MODE, channel_);
+  const int duty_delta = current_duty > target_duty
+                             ? current_duty - target_duty
+                             : target_duty - current_duty;
+  // LEDC clamps the cycles per duty step, shortening fades beyond this limit.
+  const int64_t max_millis =
+      int64_t{duty_delta} * kMaxFadeCyclesPerStep * 1000 / kFreq;
+  if (millis < 0 || millis > max_millis) return false;
   EnsureFadeServiceInstalled();
-  if (ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, channel_,
-                              dutyForLevel(target_level),
-                              duration.inMillis()) != ESP_OK) {
+  if (ledc_set_fade_with_time(LEDC_LOW_SPEED_MODE, channel_, target_duty,
+                              static_cast<int>(millis)) != ESP_OK) {
     return false;
   }
   return ledc_fade_start(LEDC_LOW_SPEED_MODE, channel_, LEDC_FADE_NO_WAIT) ==

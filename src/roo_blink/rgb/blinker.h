@@ -29,7 +29,7 @@ class RgbStep {
 
   Type type_;
   Color target_color_;
-  uint16_t duration_millis_;
+  int64_t duration_millis_;
 };
 
 /// Sequence of steps for RGB blinking.
@@ -131,9 +131,8 @@ RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
 constexpr RgbStep::RgbStep(Type type, Color color, roo_time::Duration duration)
     : type_(type),
       target_color_(color),
-      duration_millis_(duration > roo_time::Duration()
-                           ? static_cast<uint16_t>(duration.inMillis())
-                           : 0) {}
+      duration_millis_(duration > roo_time::Duration() ? duration.inMillis()
+                                                       : 0) {}
 
 constexpr RgbStep RgbSetTo(Color color) {
   return RgbStep(RgbStep::kSet, color, {});

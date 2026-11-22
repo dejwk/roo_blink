@@ -33,7 +33,7 @@ class Step {
 
   Type type_;
   uint16_t target_level_;
-  uint16_t duration_millis_;
+  int64_t duration_millis_;
 };
 
 /// Sequence of steps for monochrome blinking.
@@ -145,9 +145,8 @@ constexpr Step::Step(Type type, uint16_t target_level,
                      roo_time::Duration duration)
     : type_(type),
       target_level_(target_level),
-      duration_millis_(duration > roo_time::Duration()
-                           ? static_cast<uint16_t>(duration.inMillis())
-                           : 0) {}
+      duration_millis_(duration > roo_time::Duration() ? duration.inMillis()
+                                                       : 0) {}
 
 constexpr Step TurnOn() { return Step(Step::kSet, 65535, {}); }
 constexpr Step TurnOff() { return Step(Step::kSet, 0, {}); }

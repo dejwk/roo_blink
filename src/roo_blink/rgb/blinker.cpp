@@ -109,7 +109,7 @@ void RgbBlinker::step() {
       return;
     }
   }
-  uint16_t next_delay = 0;
+  int64_t next_delay = 0;
   do {
     if (pos_ >= sequence_.size()) {
       sequence_.clear();
@@ -135,7 +135,8 @@ void RgbBlinker::step() {
         fade_target_color_ = s.target_color_;
         fade_start_time_ = roo_time::Uptime::Now();
         fade_end_time_ =
-            fade_start_time_ + roo_time::Millis(s.duration_millis_);
+            fade_start_time_ + std::min(Millis(s.duration_millis_),
+                                        Uptime::Max() - fade_start_time_);
         next_delay = 20;
         break;
       }
@@ -146,8 +147,9 @@ void RgbBlinker::step() {
       pos_ = 0;
     }
   } while (next_delay == 0);
-  stepper_.scheduleAfter(roo_time::Millis(next_delay),
-                         roo_scheduler::PRIORITY_ELEVATED);
+  const Uptime now = Uptime::Now();
+  stepper_.scheduleOn(now + std::min(Millis(next_delay), Uptime::Max() - now),
+                      roo_scheduler::PRIORITY_ELEVATED);
 }
 
 RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
@@ -159,11 +161,11 @@ RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
   CHECK_LE(rampup_percent_on, 100);
   CHECK_GE(rampup_percent_off, 0);
   CHECK_LE(rampup_percent_off, 100);
-  int millis = period.inMillis();
-  int millis_1st = duty_percent * millis / 100;
-  int millis_1st_rampup = rampup_percent_on * millis_1st / 100;
-  int millis_2nd = millis - millis_1st;
-  int millis_2nd_rampup = rampup_percent_off * millis_2nd / 100;
+  const int64_t millis = period.inMillis();
+  const int64_t millis_1st = duty_percent * millis / 100;
+  const int64_t millis_1st_rampup = rampup_percent_on * millis_1st / 100;
+  const int64_t millis_2nd = millis - millis_1st;
+  const int64_t millis_2nd_rampup = rampup_percent_off * millis_2nd / 100;
 
   RgbBlinkSequence result;
 

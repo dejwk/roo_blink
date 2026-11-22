@@ -12,6 +12,7 @@ using roo_time::Duration;
 using roo_time::Micros;
 using roo_time::Millis;
 using roo_time::Seconds;
+using roo_time::Uptime;
 
 class RecordingLed : public Led {
  public:
@@ -147,6 +148,69 @@ TEST(BlinkerSequence, ZeroRepetitionsStopExistingPattern) {
   scheduler.executeEligibleTasks();
   EXPECT_EQ(led.levels, (std::vector<uint16_t>{100}));
 }
+
+// Verifies that the first step of a long RGB blink can hold beyond 16 bits.
+TEST(BlinkerSequence, RgbHoldKeepsFullDuration) {
+  roo_scheduler::SchedulingService scheduler;
+  RecordingRgbLed led;
+  RgbBlinker blinker(led, scheduler);
+  blinker.loop(RgbBlink(Millis(131072), Color(255, 0, 0)));
+
+  const Uptime before = Uptime::Now();
+  scheduler.executeEligibleTasks(1);
+  const Uptime after = Uptime::Now();
+  ASSERT_EQ(led.colors.size(), 1u);
+  EXPECT_EQ(led.colors.front().r(), 255);
+  const Uptime next = scheduler.getNearestExecutionTime();
+  EXPECT_GE(next, before + Millis(65536));
+  EXPECT_LE(next, after + Millis(65536));
+}
+
+// Verifies that a long hold remains scheduled with the current level.
+TEST(BlinkerSequence, MonochromeHoldKeepsFullDuration) {
+  roo_scheduler::SchedulingService scheduler;
+  RecordingLed led;
+  Blinker blinker(led, scheduler);
+  BlinkSequence sequence;
+  sequence.add(SetTo(100));
+  sequence.add(Hold(Millis(65536)));
+  blinker.execute(sequence);
+
+  const Uptime before = Uptime::Now();
+  scheduler.executeEligibleTasks(1);
+  const Uptime after = Uptime::Now();
+  EXPECT_EQ(led.levels, (std::vector<uint16_t>{100}));
+  const Uptime next = scheduler.getNearestExecutionTime();
+  EXPECT_GE(next, before + Millis(65536));
+  EXPECT_LE(next, after + Millis(65536));
+}
+
+// Verifies that a supported LED backend receives the full long fade duration.
+TEST(BlinkerSequence, MonochromeFadeKeepsFullDuration) {
+  roo_scheduler::SchedulingService scheduler;
+  RecordingLed led;
+  Blinker blinker(led, scheduler);
+  BlinkSequence sequence;
+  sequence.add(FadeOn(Millis(65536)));
+  blinker.execute(sequence);
+
+  const Uptime before = Uptime::Now();
+  scheduler.executeEligibleTasks(1);
+  const Uptime after = Uptime::Now();
+  EXPECT_EQ(led.fades, (std::vector<Duration>{Millis(65536)}));
+  const Uptime next = scheduler.getNearestExecutionTime();
+  EXPECT_GE(next, before + Millis(65536));
+  EXPECT_LE(next, after + Millis(65536));
+}
+
+#if defined(ESP32)
+// Verifies that a fade exceeding the LEDC timing limit requests software
+// fading.
+TEST(BlinkerSequence, GpioLedDeclinesUnrepresentableHardwareFade) {
+  esp32::GpioLed led(2);
+  EXPECT_FALSE(led.fade(65535, Millis(65536)));
+}
+#endif
 
 }  // namespace
 }  // namespace roo_blink
