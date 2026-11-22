@@ -16,7 +16,10 @@ RgbBlinker blinker(led);
 using namespace roo_time;
 
 void setup() {
-  // Create a custom loop that goes through several colors, stopping at some briefly.
+  pixels.begin();
+
+  // Create a custom loop that goes through several colors, stopping at some
+  // briefly.
   RgbBlinkSequence sequence;
   sequence.add(RgbFadeTo(Color(255, 0, 0), Millis(300)));
   sequence.add(RgbHold(Millis(50)));

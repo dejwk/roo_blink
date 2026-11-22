@@ -14,6 +14,8 @@ NeoPixelLed led(pixels);
 RgbBlinker blinker(led);
 
 void setup() {
+  pixels.begin();
+
   // Starts blinking purple, with 50% intensity (expressed in the RGB color
   // value), 30% duty cycle (i.e. 30% rising, 30% falling), with fast (30%)
   // rampup of the 'on' state, and slow (90%) rampdown of the off state.

@@ -8,6 +8,8 @@ class Adafruit_NeoPixel {
  public:
   Adafruit_NeoPixel(uint16_t, int) {}
 
+  bool begin() { return true; }
+
   void setPixelColor(uint16_t, uint8_t, uint8_t, uint8_t) {}
   void show() {}
 };
