@@ -29,7 +29,7 @@ class Step {
 
   enum Type { kSet, kHold, kFade };
 
-  constexpr Step(Type type, uint16_t target_level, uint16_t duration_millis);
+  constexpr Step(Type type, uint16_t target_level, roo_time::Duration duration);
 
   Type type_;
   uint16_t target_level_;
@@ -57,6 +57,7 @@ constexpr Step TurnOff();
 constexpr Step SetTo(uint16_t level);
 
 /// Creates a step that fades linearly to the target level over the duration.
+/// Durations below one millisecond set the level instantly.
 constexpr Step FadeTo(uint16_t level, roo_time::Duration duration);
 
 /// Creates a step that fades linearly to the maximum brightness over duration.
@@ -65,7 +66,8 @@ constexpr Step FadeOn(roo_time::Duration duration);
 /// Creates a step that fades linearly down to off over the duration.
 constexpr Step FadeOff(roo_time::Duration duration);
 
-/// Creates a step that maintains the current brightness for the duration.
+/// Creates a step that holds the current brightness for the duration,
+/// rounded down to whole milliseconds. Nonpositive durations are instant.
 constexpr Step Hold(roo_time::Duration duration);
 
 /// Runs blink sequences on a monochrome LED.
@@ -87,14 +89,18 @@ class Blinker {
   /// from this blinker's callback or concurrently with other public calls.
   ~Blinker();
 
-  /// Repeats the sequence indefinitely.
+  /// Repeats the sequence indefinitely. If it has no positive-duration
+  /// steps at millisecond precision, stops the current pattern and turns
+  /// the LED off.
   void loop(BlinkSequence sequence);
 
-  /// Repeats the sequence the specified number of times.
+  /// Repeats the sequence the specified number of times. When it finishes,
+  /// applies @p terminal_level. A nonpositive count applies the terminal
+  /// output immediately.
   void repeat(BlinkSequence sequence, int repetitions,
               uint16_t terminal_level = 0);
 
-  /// Executes the sequence once.
+  /// Executes the sequence once and then applies @p terminal_level.
   void execute(BlinkSequence sequence, uint16_t terminal_level = 0);
 
   /// Enables the LED at the specified intensity.
@@ -114,9 +120,9 @@ class Blinker {
   Led& led_;
   roo_scheduler::SingletonTask stepper_;
   std::vector<Step> sequence_;
-  uint16_t current_level_;
+  uint16_t current_level_ = 0;
   uint16_t terminal_level_;
-  size_t repetitions_;
+  int repetitions_;
   size_t pos_;
 
   mutable roo::mutex mutex_;
@@ -135,18 +141,22 @@ BlinkSequence Blink(roo_time::Duration period, int duty_percent = 50,
 
 // Implementation details.
 
-constexpr Step::Step(Type type, uint16_t target_level, uint16_t duration_millis)
+constexpr Step::Step(Type type, uint16_t target_level,
+                     roo_time::Duration duration)
     : type_(type),
       target_level_(target_level),
-      duration_millis_(duration_millis) {}
+      duration_millis_(duration > roo_time::Duration()
+                           ? static_cast<uint16_t>(duration.inMillis())
+                           : 0) {}
 
-constexpr Step TurnOn() { return Step(Step::kSet, 65535, 0); }
-constexpr Step TurnOff() { return Step(Step::kSet, 0, 0); }
+constexpr Step TurnOn() { return Step(Step::kSet, 65535, {}); }
+constexpr Step TurnOff() { return Step(Step::kSet, 0, {}); }
 
-constexpr Step SetTo(uint16_t level) { return Step(Step::kSet, level, 0); }
+constexpr Step SetTo(uint16_t level) { return Step(Step::kSet, level, {}); }
 
 constexpr Step FadeTo(uint16_t level, roo_time::Duration duration) {
-  return Step(Step::kFade, level, (uint16_t)duration.inMillis());
+  if (duration < roo_time::Millis(1)) return SetTo(level);
+  return Step(Step::kFade, level, duration);
 }
 
 constexpr Step FadeOn(roo_time::Duration duration) {
@@ -158,7 +168,7 @@ constexpr Step FadeOff(roo_time::Duration duration) {
 }
 
 constexpr Step Hold(roo_time::Duration duration) {
-  return Step(Step::kHold, 0, (uint16_t)duration.inMillis());
+  return Step(Step::kHold, 0, duration);
 }
 
 }  // namespace roo_blink

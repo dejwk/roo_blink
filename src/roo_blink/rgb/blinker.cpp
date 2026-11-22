@@ -1,5 +1,6 @@
 #include "roo_blink/rgb/blinker.h"
 
+#include <algorithm>
 #include <exception>
 
 #include "roo_blink.h"
@@ -29,11 +30,21 @@ RgbBlinker::~RgbBlinker() {
 }
 
 void RgbBlinker::loop(RgbBlinkSequence sequence) {
+  if (std::none_of(
+          sequence.sequence_.begin(), sequence.sequence_.end(),
+          [](const RgbStep& step) { return step.duration_millis_ > 0; })) {
+    turnOff();
+    return;
+  }
   updateSequence(std::move(sequence), -1, Color());
 }
 
 void RgbBlinker::repeat(RgbBlinkSequence sequence, int repetitions,
                         Color terminal_color) {
+  if (repetitions <= 0) {
+    updateSequence({}, 0, terminal_color);
+    return;
+  }
   updateSequence(std::move(sequence), repetitions - 1, terminal_color);
 }
 
@@ -51,21 +62,25 @@ void RgbBlinker::updateSequence(RgbBlinkSequence sequence, int repetitions,
   if (stepper_.is_shutdown()) return;
   sequence_ = std::move(sequence.sequence_);
   terminal_color_ = terminal_color;
-  current_color_ = terminal_color;
   repetitions_ = repetitions;
   fade_in_progress_ = false;
   pos_ = 0;
-  if (!sequence_.empty() && !stepper_.is_scheduled()) {
+  if (!sequence_.empty()) {
     stepper_.scheduleNow(roo_scheduler::PRIORITY_ELEVATED);
   } else {
-    current_color_ = terminal_color;
+    stepper_.cancel();
+    current_color_ = terminal_color_;
     led_.setColor(current_color_);
   }
 }
 
 void RgbBlinker::step() {
   roo::lock_guard<roo::mutex> lock(mutex_);
-  if (stepper_.is_shutdown()) return;
+  // A callback already claimed before a replacement may still reach
+  // this point. The newly scheduled callback owns the replacement.
+  if (stepper_.is_shutdown() || stepper_.is_scheduled() || sequence_.empty()) {
+    return;
+  }
   if (fade_in_progress_) {
     roo_time::Uptime now = roo_time::Uptime::Now();
     if (now >= fade_end_time_) {
@@ -98,6 +113,8 @@ void RgbBlinker::step() {
   do {
     if (pos_ >= sequence_.size()) {
       sequence_.clear();
+      current_color_ = terminal_color_;
+      led_.setColor(current_color_);
       return;
     }
     const RgbStep& s = sequence_[pos_];

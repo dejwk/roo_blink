@@ -25,7 +25,7 @@ class RgbStep {
 
   enum Type { kSet, kHold, kFade };
 
-  constexpr RgbStep(Type type, Color color, uint16_t duration_millis);
+  constexpr RgbStep(Type type, Color color, roo_time::Duration duration);
 
   Type type_;
   Color target_color_;
@@ -50,12 +50,14 @@ constexpr RgbStep RgbSetTo(Color color);
 constexpr RgbStep RgbTurnOff();
 
 /// Creates a step that fades to the target color over the duration.
+/// Durations below one millisecond set the color instantly.
 constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration);
 
 /// Creates a step that fades the LED off over the duration.
 constexpr RgbStep RgbFadeOff(roo_time::Duration duration);
 
-/// Creates a step that holds the current color for the duration.
+/// Creates a step that holds the current color for the duration,
+/// rounded down to whole milliseconds. Nonpositive durations are instant.
 constexpr RgbStep RgbHold(roo_time::Duration duration);
 
 /// Runs blink sequences on an RGB LED.
@@ -77,14 +79,18 @@ class RgbBlinker {
   /// from this blinker's callback or concurrently with other public calls.
   ~RgbBlinker();
 
-  /// Repeats the sequence indefinitely.
+  /// Repeats the sequence indefinitely. If it has no positive-duration
+  /// steps at millisecond precision, stops the current pattern and turns
+  /// the LED off.
   void loop(RgbBlinkSequence sequence);
 
-  /// Repeats the sequence the specified number of times.
+  /// Repeats the sequence the specified number of times. When it finishes,
+  /// applies @p terminal_color. A nonpositive count applies the terminal
+  /// output immediately.
   void repeat(RgbBlinkSequence sequence, int repetitions,
               Color terminal_color = Color());
 
-  /// Executes the sequence once.
+  /// Executes the sequence once and then applies @p terminal_color.
   void execute(RgbBlinkSequence sequence, Color terminal_color = Color());
 
   /// Enables the LED, setting it to the specified color.
@@ -101,9 +107,9 @@ class RgbBlinker {
   RgbLed& led_;
   roo_scheduler::SingletonTask stepper_;
   std::vector<RgbStep> sequence_;
-  Color current_color_;
+  Color current_color_{};
   Color terminal_color_;
-  size_t repetitions_;
+  int repetitions_;
   size_t pos_;
 
   mutable roo::mutex mutex_;
@@ -122,21 +128,26 @@ RgbBlinkSequence RgbBlink(roo_time::Duration period, Color color,
 
 // Implementation details.
 
-constexpr RgbStep::RgbStep(Type type, Color color, uint16_t duration_millis)
-    : type_(type), target_color_(color), duration_millis_(duration_millis) {}
+constexpr RgbStep::RgbStep(Type type, Color color, roo_time::Duration duration)
+    : type_(type),
+      target_color_(color),
+      duration_millis_(duration > roo_time::Duration()
+                           ? static_cast<uint16_t>(duration.inMillis())
+                           : 0) {}
 
 constexpr RgbStep RgbSetTo(Color color) {
-  return RgbStep(RgbStep::kSet, color, 0);
+  return RgbStep(RgbStep::kSet, color, {});
 }
 
 constexpr RgbStep RgbTurnOff() { return RgbSetTo(Color()); }
 
 constexpr RgbStep RgbHold(roo_time::Duration duration) {
-  return RgbStep(RgbStep::kHold, Color(), (uint16_t)duration.inMillis());
+  return RgbStep(RgbStep::kHold, Color(), duration);
 }
 
 constexpr RgbStep RgbFadeTo(Color color, roo_time::Duration duration) {
-  return RgbStep(RgbStep::kFade, color, (uint16_t)duration.inMillis());
+  if (duration < roo_time::Millis(1)) return RgbSetTo(color);
+  return RgbStep(RgbStep::kFade, color, duration);
 }
 
 constexpr RgbStep RgbFadeOff(roo_time::Duration duration) {

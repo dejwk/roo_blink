@@ -36,3 +36,17 @@ cc_test(
         "@roo_testing//:arduino_gtest_main",
     ],
 )
+
+cc_test(
+    name = "blinker_test",
+    srcs = ["test/blinker_test.cpp"],
+    size = "small",
+    linkstatic = 1,
+    deps = [
+        ":roo_blink",
+        "@googletest//:gtest",
+        "@roo_scheduler",
+        "@roo_testing//:arduino_gtest_main",
+        "@roo_time",
+    ],
+)

@@ -1,5 +1,6 @@
 #include "roo_blink/monochrome/blinker.h"
 
+#include <algorithm>
 #include <exception>
 
 #include "roo_blink.h"
@@ -30,11 +31,21 @@ Blinker::~Blinker() {
 }
 
 void Blinker::loop(BlinkSequence sequence) {
+  if (std::none_of(
+          sequence.sequence_.begin(), sequence.sequence_.end(),
+          [](const Step& step) { return step.duration_millis_ > 0; })) {
+    turnOff();
+    return;
+  }
   updateSequence(std::move(sequence), -1, 0);
 }
 
 void Blinker::repeat(BlinkSequence sequence, int repetitions,
                      uint16_t terminal_level) {
+  if (repetitions <= 0) {
+    updateSequence({}, 0, terminal_level);
+    return;
+  }
   updateSequence(std::move(sequence), repetitions - 1, terminal_level);
 }
 
@@ -54,13 +65,13 @@ void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
   if (stepper_.is_shutdown()) return;
   sequence_ = std::move(sequence.sequence_);
   terminal_level_ = terminal_level;
-  current_level_ = terminal_level_;
   repetitions_ = repetitions;
   fade_in_progress_ = false;
   pos_ = 0;
-  if (!sequence_.empty() && !stepper_.is_scheduled()) {
+  if (!sequence_.empty()) {
     stepper_.scheduleNow(roo_scheduler::PRIORITY_ELEVATED);
   } else {
+    stepper_.cancel();
     current_level_ = terminal_level_;
     led_.setLevel(current_level_);
   }
@@ -68,7 +79,11 @@ void Blinker::updateSequence(BlinkSequence sequence, int repetitions,
 
 void Blinker::step() {
   roo::lock_guard<roo::mutex> lock(mutex_);
-  if (stepper_.is_shutdown()) return;
+  // A callback already claimed before a replacement may still reach
+  // this point. The newly scheduled callback owns the replacement.
+  if (stepper_.is_shutdown() || stepper_.is_scheduled() || sequence_.empty()) {
+    return;
+  }
   if (fade_in_progress_) {
     roo_time::Uptime now = roo_time::Uptime::Now();
     if (now >= fade_end_time_) {
@@ -108,6 +123,7 @@ void Blinker::step() {
       case Step::kFade:
       default: {
         if (led_.fade(s.target_level_, roo_time::Millis(s.duration_millis_))) {
+          current_level_ = s.target_level_;
           next_delay = s.duration_millis_;
         } else {
           fade_in_progress_ = true;
