@@ -1,11 +1,11 @@
 #include "roo_blink/monochrome/led_esp32.h"
 
+#if defined(ESP32)
+
 #include "esp_err.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "roo_logging.h"
-
-#if defined(ESP32)
 
 namespace roo_blink {
 namespace esp32 {
