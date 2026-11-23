@@ -1,3 +1,14 @@
+# roo_blink 1.3.0
+
+- Fixed monochrome and RGB blink sequences so replacement patterns start immediately, loops without timed steps turn the LED off, and nonpositive repeat counts apply the final output immediately. Finite RGB sequences now apply their final color on completion.
+- Fixed hold and fade durations beyond 65,535 ms. Fades shorter than 1 ms apply immediately, and ESP32 LEDs use software fades when the hardware cannot honor the requested duration.
+- Fixed Arduino dependency discovery and guarded ESP32-specific LED headers on other boards. Both RGB examples now initialize their NeoPixels before blinking.
+- Updated `Blinker`, `RgbBlinker`, and `DefaultScheduler()` to use `roo_scheduler::Scheduler&` in place of `SchedulerClient&`.
+- Upgraded `roo_scheduler` to 2.4.0, `roo_logging` to 1.6.1, `roo_threads` to 1.4.0, and `roo_time` to 2.2.1.
+- Updated Bazel and CI to `roo_testing` 2.7.0, added blink regression tests, and enabled Arduino ESP32 tests in CI with AddressSanitizer coverage. Added Bazel profile definitions for ESP32-C3, ESP32-S3, and RP2040, and expanded the local test helper to target nine profiles.
+
+---
+
 # roo_blink 1.2.0
 
 - Upgrade `roo_scheduler` to 2.3.0.
